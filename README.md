@@ -39,7 +39,7 @@ Butuh Node.js [( LINK DOWNLOAD )](https://nodejs.org/en/download/prebuilt-instal
 ![image](https://github.com/user-attachments/assets/6e626d7f-9033-44e5-9307-2b8c680ca858)
 
 
-#### Auto Claim, Auto Daily Reward & Auto Playing Game
+#### How To Run
 ```shell
 >> node cow.js
 ```
