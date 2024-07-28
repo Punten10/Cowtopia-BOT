@@ -7,10 +7,12 @@ Daftar Disini [COWTOPIA BOT](https://t.me/cowtopiabot/app?startapp=1993663749)
 ## Fitur
 ```bash
 >> Auto Get Token
->> Auto Buy Factory
+>> Auto Buy Factory ( FIX )
 >> Auto Buy Animal
 >> Auto Clear Mission
 >> Auto Claim Offline Profit
+>> Auto Open BOX NFT
+>> Auto Equip NFT
 >> Multi Account
 ```
 
