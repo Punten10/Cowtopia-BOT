@@ -95,17 +95,33 @@ async function completeMissions(token) {
         { name: "Make a purchase daily", key: "purchase-daily" },
         { name: "Engage in SingSing Channel", key: "engage-in-singsing-channel" },
         { name: "Chat to SingSing Group", key: "chat-to-singsing-group" },
-        { name: "Mine Ruby Daily", key: "mine-ruby-daily" }
+        { name: "Mine Ruby Daily", key: "mine-ruby-daily" },
+        { name: "Follow X mineTON", key: "follow-x-mineTON" },
+        { name: "Join mineTON Channel", key: "join-mineTON-channel" },
+        { name: "Play mineTON", key: "play-mineTON" },
+        { name: "Play Pixel Farm", key: "play-pixel-farm" },
+        { name: "Join Pixel Farm Group", key: "Join-Pixel-Farm-Group" },
+        { name: "Follow Pixel Farm X", key: "Follow-Pixel-Farm-X" },
+        { name: "Follow Piloton X", key: "Follow-Piloton-X" },
+        { name: "Join Telegram Piloton Channel", key: "Join-Telegram-Piloton-Channel" },
+        { name: "Play Piloton Game", key: "Play-Piloton-Game" },
+        { name: "Follow Funton X", key: "Follow-Funton-X" },
+        { name: "Join Funton Telegram Group", key: "Join-Funton-Telegram-Group" },
+        { name: "Play Funton Game", key: "Play-Funton-game" }
     ];
 
     try {
         for (const mission of missions) {
             const data = { mission_key: mission.key };
             const response = await axios.post(url, data, { headers, timeout: 10000 });
-            if (response.status === 201) {
-                console.log(`[ ${currentTime()} ] ` + chalk.yellow(`Mission : ${mission.name} | Response: ${JSON.stringify(response.data)}`));
+            if (response.data.success) {
+                if (response.data.data.completed) {
+                    console.log(`[ ${currentTime()} ] ` + chalk.green(`Mission: ${mission.name} | Status: Completed`));
+                } else {
+                    console.log(`[ ${currentTime()} ] ` + chalk.red(`Mission: ${mission.name} | Status: Not Completed`));
+                }
             } else {
-                console.log(`[ ${currentTime()} ] ` + chalk.red(`Mission failed: ${mission.name} | Status code: ${response.status}`));
+                console.log(`[ ${currentTime()} ] ` + chalk.red(`Mission: ${mission.name} | Status: Failed`));
             }
         }
     } catch (error) {
@@ -113,7 +129,7 @@ async function completeMissions(token) {
     }
 }
 
-// New function to buy an animal
+// Function to buy an animal
 async function buyAnimal(token) {
     const chalk = await importChalk();
     const API_GAME_INFO = "https://cowtopia-be.tonfarmer.com/user/game-info?";
@@ -186,20 +202,180 @@ async function buyLand(token) {
         const factoriesIsAvailable = factories.filter(
             (factory) => factory.lock === true
         );
+
         const money = res.data.data.user.money;
 
         if (factoriesIsAvailable.length > 0 && money >= factoriesIsAvailable[0].unlockCost) {
-            const res = await axios.post(API_BUY_FACTORY, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-            console.log(`[ ${currentTime()} ] ` + chalk.green(`Land successfully purchased.`));
+            await axios.post(
+                API_BUY_FACTORY,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            console.log(`[ ${currentTime()} ] ` + chalk.greenBright(`Factory unlocked`));
         } else {
-            console.log(`[ ${currentTime()} ] ` + chalk.red(`Not enough money to unlock factory.`));
+            console.log(`[ ${currentTime()} ]  ` + chalk.red(`Money Not enough to unlock factory`));
         }
     } catch (error) {
-        console.log(`[ ${currentTime()} ] ` + chalk.red(`Error from unlock factory: ${error.message}`));
+        console.log(`[ ${currentTime()} ] Unlock factory failed: ${error.message}`);
+    }
+}
+
+// Function to upgrade house
+async function upgradeHouse(token) {
+    const chalk = await importChalk();
+    const API_UPGRADE_HOUSE_GET = "https://cowtopia-be.tonfarmer.com/factory/upgrade-house?";
+    const API_UPGRADE_HOUSE_POST = "https://cowtopia-be.tonfarmer.com/factory/upgrade-house";
+
+    try {
+        const getResponse = await axios.get(API_UPGRADE_HOUSE_GET, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        if (getResponse.data.success) {
+            const currentLevel = getResponse.data.data.level; // Simulated level check
+            console.log(`[ ${currentTime()} ] Current factory house level: ${currentLevel}`);
+            if (currentLevel < 20) { // Replace 4 with the desired maximum level
+                const postResponse = await axios.post(API_UPGRADE_HOUSE_POST, {}, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+
+                if (postResponse.status === 200 && postResponse.data.success) {
+                    console.log(`[ ${currentTime()} ] ` + chalk.green(`Upgrade factory house success.`));
+                } else {
+                    console.log(`[ ${currentTime()} ] ` + chalk.red(`Upgrade factory house failed.`));
+                }
+            } else {
+                console.log(`[ ${currentTime()} ] ` + chalk.blue(`Factory house is already at maximum level.`));
+            }
+        } else {
+            console.log(`[ ${currentTime()} ] ` + chalk.red(`Pre-check for upgrade factory house failed.`));
+        }
+    } catch (error) {
+        console.log(`[ ${currentTime()} ] ` + chalk.red(`Error upgrading factory house: ${error.message}`));
+    }
+}
+
+// Function to get NFT box info
+async function getNftBoxInfo(token) {
+    const chalk = await importChalk();
+    const API_NFT_BOX_INFO = "https://cowtopia-be.tonfarmer.com/nft/box/info?";
+
+    try {
+        const response = await axios.get(API_NFT_BOX_INFO, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        if (response.data.success) {
+            console.log(`[ ${currentTime()} ] NFT Box Info: ` + chalk.greenBright(`${JSON.stringify(response.data.data)}`));
+            return response.data.data;
+        } else {
+            console.log(`[ ${currentTime()} ] ` + chalk.red(`Failed to get NFT box info.`));
+            return null;
+        }
+    } catch (error) {
+        console.log(`[ ${currentTime()} ] ` + chalk.red(`Error getting NFT box info: ${error.message}`));
+        return null;
+    }
+}
+
+// Function to open NFT box
+async function openNftBox(token) {
+    const chalk = await importChalk();
+    const API_NFT_BOX_OPEN = "https://cowtopia-be.tonfarmer.com/nft/box/open";
+
+    const payload = {
+        currency: "money"
+    };
+
+    try {
+        const response = await axios.post(API_NFT_BOX_OPEN, payload, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        if (response.data.success) {
+            console.log(`[ ${currentTime()} ] NFT Box opened successfully: ` + chalk.greenBright(`${JSON.stringify(response.data.data)}`));
+            console.log(`[ ${currentTime()} ] NFT Title: ` + chalk.greenBright(`${response.data.data.title}`));
+            return response.data.data;
+        } else if (response.data.error && response.data.error.code === 400) {
+            console.log(`[ ${currentTime()} ] ` + chalk.red(`Not enough Coin`));
+            return null;
+        } else {
+            console.log(`[ ${currentTime()} ] ` + chalk.red(`Failed to open NFT box.`));
+            return null;
+        }
+    } catch (error) {
+        if (error.response && error.response.status === 400) {
+            console.log(`[ ${currentTime()} ] ` + chalk.red(`Failed to open NFT box, Not enough Coin`));
+        } else {
+            console.log(`[ ${currentTime()} ] ` + chalk.red(`Error opening NFT box: ${error.message}`));
+        }
+        return null;
+    }
+}
+
+// Function to fetch NFT list
+async function fetchNftList(token) {
+    const chalk = await importChalk();
+    const API_NFT_LIST = "https://cowtopia-be.tonfarmer.com/nft/list?limit=20&offset=0";
+
+    try {
+        const response = await axios.get(API_NFT_LIST, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        if (response.data.success) {
+            const nftList = response.data.data.map(nft => nft.nft_id);
+            console.log(`[ ${currentTime()} ] NFT List fetched successfully: ` + chalk.greenBright(`${JSON.stringify(nftList)}`));
+            return nftList;
+        } else {
+            console.log(`[ ${currentTime()} ] ` + chalk.red(`Failed to fetch NFT list.`));
+            return null;
+        }
+    } catch (error) {
+        console.log(`[ ${currentTime()} ] ` + chalk.red(`Error fetching NFT list: ${error.message}`));
+        return null;
+    }
+}
+
+// Function to equip NFT
+async function equipNft(token, factoryId, nftId) {
+    const chalk = await importChalk();
+    const API_EQUIP_NFT = "https://cowtopia-be.tonfarmer.com/factory/equip-nft";
+
+    const payload = {
+        factory_id: factoryId,
+        nft_id: nftId
+    };
+
+    try {
+        const response = await axios.post(API_EQUIP_NFT, payload, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        if (response.data.success) {
+            console.log(`[ ${currentTime()} ] Equip NFT Message: ` + chalk.greenBright(`${response.data.data.message}`));
+        } else {
+            console.log(`[ ${currentTime()} ] ` + chalk.red(`Failed to equip NFT.`));
+        }
+    } catch (error) {
+        console.log(`[ ${currentTime()} ] ` + chalk.red(`Error equipping NFT: ${error.message}`));
     }
 }
 
@@ -312,6 +488,32 @@ async function main() {
                 await completeMissions(token);
                 await buyAnimal(token);
                 await buyLand(token);
+                await upgradeHouse(token);
+
+                const nftBoxInfo = await getNftBoxInfo(token);
+                let factoryId = null;
+                if (nftBoxInfo) {
+                    const nftBoxData = await openNftBox(token);
+                    if (nftBoxData) {
+                        factoryId = nftBoxData.factory_id;
+                        await equipNft(token, nftBoxData.factory_id, nftBoxData.nft_id);
+                    }
+                }
+
+                const nftList = await fetchNftList(token);
+                if (nftList && nftList.length > 0) {
+                    const nftId = nftList[0]; // Select the first NFT for example
+                    if (!factoryId) {
+                        const res = await axios.get("https://cowtopia-be.tonfarmer.com/user/game-info?", {
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                            },
+                        });
+                        factoryId = res.data.data.factories[0].factory_id; // Use the first factory's ID
+                    }
+                    await equipNft(token, factoryId, nftId);
+                }
+
                 await claimOfflineProfit(token);
                 console.log(`[ ${currentTime()} ] Finished actions for user: ` + chalk.greenBright(`${user.username}\n`));
             }
