@@ -53,19 +53,6 @@ async function generateToken(x_tg_data) {
     }
 }
 
-// Mock function to validate tokens
-async function validateToken() {
-    const tgDataList = fs.readFileSync('query.txt', 'utf8').split('\n').filter(line => line.trim() !== '');
-    const tokens = [];
-    for (const tgData of tgDataList) {
-        const tokenData = await generateToken(tgData);
-        if (tokenData) {
-            tokens.push(tokenData);
-        }
-    }
-    return tokens;
-}
-
 // Function to fetch available missions based on group
 async function fetchMissions(token, group) {
     const chalk = await importChalk();
@@ -499,8 +486,10 @@ async function countdownTimer(duration) {
     process.stdout.write(`\r` + chalk.cyan("[ ∘∘∘ ] Countdown: 00:00:00\n"));
 }
 
+// Modified main function
 async function main() {
     const chalk = await importChalk();
+    
     const delay = await new Promise(resolve => {
         const rl = readline.createInterface({
             input: process.stdin,
@@ -509,6 +498,39 @@ async function main() {
         rl.question("Input delay in seconds: ", answer => {
             rl.close();
             resolve(parseInt(answer, 10));
+        });
+    });
+
+    const autoClearMission = await new Promise(resolve => {
+        const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout
+        });
+        rl.question("Auto Clear Mission (Y or N) (Default N): ", answer => {
+            rl.close();
+            resolve(answer.trim().toUpperCase() === 'Y');
+        });
+    });
+
+    const autoBuyAnimal = await new Promise(resolve => {
+        const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout
+        });
+        rl.question("Auto Buy Animal (Y or N) (Default N): ", answer => {
+            rl.close();
+            resolve(answer.trim().toUpperCase() === 'Y');
+        });
+    });
+
+    const autoBuyFactory = await new Promise(resolve => {
+        const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout
+        });
+        rl.question("Auto Buy Factory (Y or N) (Default N): ", answer => {
+            rl.close();
+            resolve(answer.trim().toUpperCase() === 'Y');
         });
     });
 
@@ -533,12 +555,18 @@ async function main() {
                 const { token, user } = tokenData;
                 console.log(`[ ${currentTime()} ] Starting actions for user: ` + chalk.greenBright(`${user.username}`));
                 
-                await completeMissions(token);
-                await buyAnimal(token);
-                await buyLand(token);
+                if (autoClearMission) {
+                    await completeMissions(token);
+                }
+                if (autoBuyAnimal) {
+                    await buyAnimal(token);
+                }
+                if (autoBuyFactory) {
+                    await buyLand(token);
+                }
                 await upgradeHouse(token);
 
-		const nftBoxInfo = await getNftBoxInfo(token);
+                const nftBoxInfo = await getNftBoxInfo(token);
                 let factoryId = null;
                 if (nftBoxInfo) {
                     const nftBoxData = await openNftBox(token);
